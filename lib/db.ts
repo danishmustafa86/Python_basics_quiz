@@ -2,11 +2,15 @@ import { sql } from '@vercel/postgres';
 
 // Validate database connection
 function validateDatabaseConnection() {
-  const postgresUrl = process.env.POSTGRES_URL;
+  // Neon provides DATABASE_URL, but @vercel/postgres also supports POSTGRES_URL
+  const postgresUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+
   if (!postgresUrl) {
-    console.error('❌ POSTGRES_URL environment variable not set!');
+    console.error('❌ Neither POSTGRES_URL nor DATABASE_URL environment variable is set!');
+    console.error('Available env vars:', Object.keys(process.env).filter(k => k.includes('DATABASE') || k.includes('POSTGRES')));
     throw new Error('Database connection URL not configured. Check Vercel environment variables.');
   }
+
   console.log('✓ Database connection URL found');
   return postgresUrl;
 }
