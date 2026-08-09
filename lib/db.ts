@@ -1,7 +1,20 @@
 import { sql } from '@vercel/postgres';
 
+// Validate database connection
+function validateDatabaseConnection() {
+  const postgresUrl = process.env.POSTGRES_URL;
+  if (!postgresUrl) {
+    console.error('❌ POSTGRES_URL environment variable not set!');
+    throw new Error('Database connection URL not configured. Check Vercel environment variables.');
+  }
+  console.log('✓ Database connection URL found');
+  return postgresUrl;
+}
+
 export async function initializeDatabase() {
   try {
+    validateDatabaseConnection();
+
     await sql`
       CREATE TABLE IF NOT EXISTS quiz_results (
         id SERIAL PRIMARY KEY,
@@ -12,8 +25,10 @@ export async function initializeDatabase() {
         submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
+    console.log('✓ Database table initialized');
   } catch (error) {
-    console.error('Database initialization error:', error);
+    console.error('❌ Database initialization error:', error);
+    throw error;
   }
 }
 
@@ -28,7 +43,11 @@ export interface QuizResult {
 
 export async function saveQuizResult(result: QuizResult) {
   try {
+    validateDatabaseConnection();
+
     const { name, rollNo, score, percentage } = result;
+    console.log(`Saving quiz result: ${name} (${rollNo}) - ${score}/${percentage}%`);
+
     await sql`
       INSERT INTO quiz_results (name, roll_no, score, percentage)
       VALUES (${name}, ${rollNo}, ${score}, ${percentage})
@@ -38,23 +57,30 @@ export async function saveQuizResult(result: QuizResult) {
         percentage = ${percentage},
         submitted_at = CURRENT_TIMESTAMP
     `;
+
+    console.log(`✓ Quiz result saved: ${rollNo}`);
     return { success: true };
   } catch (error) {
-    console.error('Error saving quiz result:', error);
+    console.error('❌ Error saving quiz result:', error);
     throw error;
   }
 }
 
 export async function getAllQuizResults(): Promise<QuizResult[]> {
   try {
+    validateDatabaseConnection();
+
+    console.log('Fetching all quiz results...');
     const result = await sql`
       SELECT id, name, roll_no as "rollNo", score, percentage, submitted_at as "submittedAt"
       FROM quiz_results
       ORDER BY submitted_at DESC
     `;
+
+    console.log(`✓ Fetched ${result.rows.length} quiz results`);
     return result.rows as QuizResult[];
   } catch (error) {
-    console.error('Error fetching quiz results:', error);
+    console.error('❌ Error fetching quiz results:', error);
     throw error;
   }
 }
