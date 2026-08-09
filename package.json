@@ -9,7 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@vercel/postgres": "^1.1.0",
+    "@vercel/postgres": "latest",
     "next": "16.3.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
