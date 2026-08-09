@@ -88,15 +88,15 @@ export async function GET() {
       { wch: 20 },
     ];
 
-    const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' });
+    const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
 
-    const uint8array = new Uint8Array(buffer);
-
-    return new NextResponse(uint8array, {
+    return new NextResponse(Buffer.from(buffer), {
+      status: 200,
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'Content-Disposition': `attachment; filename="quiz-results-${new Date().toISOString().split('T')[0]}.xlsx"`,
         'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Content-Length': Buffer.from(buffer).length.toString(),
       },
     });
   } catch (error) {
